@@ -95,7 +95,7 @@ for (int cyc = 0; cyc < OUT_CH_NUM_Conv; cyc += OUT_CH_NUM_Conv / times)
         for (int kc = 0; kc < Conv_MAP_SIZE; kc++)    // Conv_MAP_SIZE = 5
         {
 #pragma HLS PIPELINE
-          for (int cho = 0; cho < OUT_CH_NUM_Conv / times; cho++)    // OUT_CH_NUM_Conv = 32/4
+          for (int cho = 0; cho < OUT_CH_NUM_Conv / times; cho++)    // OUT_CH_NUM_Conv / times = 32/4
 	  {
 	    for (int chi = 0; chi < IN_CH_NUM_Conv; chi++)     // IN_CH_NUM_Conv = 1
 	    {
