@@ -493,14 +493,14 @@ void bnrelu1(haha *conv1out, haha *gama1, haha *beta1, haha *burelu1out) {
 	{
 		memcpy((void*)tempconv1out, conv1out + OUT_HEIGHT_Conv * OUT_WIDTH_Conv * cyc, sizeof(haha) * OUT_CH_NUM_Conv * OUT_HEIGHT_Conv * OUT_WIDTH_Conv / 32);
 		memcpy((void*)tempgama1, gama1 + cyc, sizeof(haha) * OUT_CH_NUM_Conv / 32);
-		memcpy((void*)tempbeta1, beta1 + cyc, sizeof(haha) * OUT_CH_NUM_Conv / 32);
+		//memcpy((void*)tempbeta1, beta1 + cyc, sizeof(haha) * OUT_CH_NUM_Conv / 32);
 
 		for (int i = 0; i < OUT_CH_NUM_Conv / 32; i++) {
 			for (int j = 0; j < OUT_HEIGHT_Conv; j++) {
 				for (int k = 0; k < OUT_WIDTH_Conv; k++) {
 					//tempbn1[i][j][k] = tempgama1[i] * tempconv1out[i][j][k] + tempbeta1[i];
 					//tempbn1[i][j][k] = (tempbn1[i][j][k] > 0) ? tempbn1[i][j][k] : ((haha)0);
-					tempbn1[i][j][k] = (tempbn1[i][j][k] > 0.333) ? (tempbn1[i][j][k]-0.333) : ((haha)0);
+					tempbn1[i][j][k] = (tempbn1[i][j][k] > tempgama1[i]) ? (tempbn1[i][j][k]-tempgama1[i]) : ((haha)0);
 				}
 			}
 		}
@@ -591,7 +591,7 @@ void bnrelu2(haha *conv2out, haha *gama2, haha *beta2, haha *burelu2out) {
 				for (int k = 0; k < OUT_WIDTH_Conv2; k++) {
 					//tempbn2[i][j][k] = tempgama2[i] * tempconv2out[i][j][k] + tempbeta2[i];
 					//tempbn2[i][j][k] = (tempbn2[i][j][k] > 0) ? tempbn2[i][j][k] : ((haha)0);
-					tempbn1[i][j][k] = (tempbn1[i][j][k] > gama2) ? (tempbn1[i][j][k]-gama2) : ((haha)0);
+					tempbn2[i][j][k] = (tempbn2[i][j][k] > tempgama2[i]) ? (tempbn2[i][j][k]-tempgama2[i]) : ((haha)0);
 				}
 			}
 		}
@@ -653,13 +653,13 @@ void pooling1(haha *burelu2out, haha *pooling1out) {
 
 #pragma SDS data zero_copy(pooling1out[0:OUT_CH_NUM_Conv2 * OUT_HEIGHT_Conv2 / 2 * OUT_WIDTH_Conv2 / 2 ], W3[0:OUT_CH_NUM_Conv3 / 256 * OUT_CH_NUM_Conv2 * Conv_MAP_SIZE * Conv_MAP_SIZE], conv3out[0:OUT_CH_NUM_Conv3 / 256 * OUT_HEIGHT_Conv3 * OUT_WIDTH_Conv3])
 void conv3(haha *pooling1out, haha *W3, haha *conv3out) {
-	int times = 256;
+	int times = 64;
 	haha temppooling1out[OUT_CH_NUM_Conv2][OUT_HEIGHT_Conv2 / 2][OUT_WIDTH_Conv2 / 2];
 #pragma HLS array_partition variable=temppooling1out complete dim =1
-	haha tempW3[OUT_CH_NUM_Conv3 / 256][OUT_CH_NUM_Conv2][Conv_MAP_SIZE][Conv_MAP_SIZE];
+	haha tempW3[OUT_CH_NUM_Conv3 / 64][OUT_CH_NUM_Conv2][Conv_MAP_SIZE][Conv_MAP_SIZE];
 #pragma HLS array_partition variable=tempW3 complete dim =1
 #pragma HLS array_partition variable=tempW3 complete dim =2
-	haha tempconv3out[OUT_CH_NUM_Conv3 / 256][OUT_HEIGHT_Conv3][OUT_WIDTH_Conv3] = { 0 };
+	haha tempconv3out[OUT_CH_NUM_Conv3 / 64][OUT_HEIGHT_Conv3][OUT_WIDTH_Conv3] = { 0 };
 #pragma HLS array_partition variable=tempconv3out complete dim =1
 
 	for (int cyc = 0; cyc < OUT_CH_NUM_Conv3; cyc += OUT_CH_NUM_Conv3 / times)
@@ -719,13 +719,14 @@ void bnrelu3(haha *conv3out, haha *gama3, haha *beta3, haha *burelu3out) {
 	{
 		memcpy((void*)tempconv3out, conv3out + OUT_HEIGHT_Conv3 * OUT_WIDTH_Conv3 * cyc, sizeof(haha) * OUT_CH_NUM_Conv3 * OUT_HEIGHT_Conv3 * OUT_WIDTH_Conv3 / 64);
 		memcpy((void*)tempgama3, gama3 + cyc, sizeof(haha) * OUT_CH_NUM_Conv3 / 64);
-		memcpy((void*)tempbeta3, beta3 + cyc, sizeof(haha) * OUT_CH_NUM_Conv3 / 64);
+		//memcpy((void*)tempbeta3, beta3 + cyc, sizeof(haha) * OUT_CH_NUM_Conv3 / 64);
 
 		for (int i = 0; i < OUT_CH_NUM_Conv3 / 64; i++) {
 			for (int j = 0; j < OUT_HEIGHT_Conv3; j++) {
 				for (int k = 0; k < OUT_WIDTH_Conv3; k++) {
-					tempbn3[i][j][k] = tempgama3[i] * tempconv3out[i][j][k] + tempbeta3[i];
-					tempbn3[i][j][k] = (tempbn3[i][j][k] > 0) ? tempbn3[i][j][k] : ((haha)0);
+					//tempbn3[i][j][k] = tempgama3[i] * tempconv3out[i][j][k] + tempbeta3[i];
+					//tempbn3[i][j][k] = (tempbn3[i][j][k] > 0) ? tempbn3[i][j][k] : ((haha)0);
+					tempbn3[i][j][k] = (tempbn3[i][j][k] > tempgama3[i]) ? (tempbn3[i][j][k]-tempgama3[i]) : ((haha)0);
 				}
 			}
 		}
@@ -751,13 +752,13 @@ void bnrelu3(haha *conv3out, haha *gama3, haha *beta3, haha *burelu3out) {
 
 #pragma SDS data zero_copy(burelu3out[0:OUT_CH_NUM_Conv3 * OUT_HEIGHT_Conv3 * OUT_WIDTH_Conv3], W4[0:OUT_CH_NUM_Conv4 / 256 * OUT_CH_NUM_Conv3 * Conv_MAP_SIZE * Conv_MAP_SIZE], conv4out[0:OUT_CH_NUM_Conv4 / 256 * OUT_HEIGHT_Conv4 * OUT_WIDTH_Conv4])
 void conv4(haha *burelu3out, haha *W4, haha *conv4out) {
-	int times = 256;
+	int times = 128;
 	haha tempburelu3out[OUT_CH_NUM_Conv3][OUT_HEIGHT_Conv3][OUT_WIDTH_Conv3];
 #pragma HLS array_partition variable=tempburelu3out complete dim =1
-	haha tempW4[OUT_CH_NUM_Conv4 / 256][OUT_CH_NUM_Conv3][Conv_MAP_SIZE][Conv_MAP_SIZE];
+	haha tempW4[OUT_CH_NUM_Conv4 / 128][OUT_CH_NUM_Conv3][Conv_MAP_SIZE][Conv_MAP_SIZE];
 #pragma HLS array_partition variable=tempW4 complete dim =1
 #pragma HLS array_partition variable=tempW4 complete dim =2
-	haha tempconv4out[OUT_CH_NUM_Conv4 / 256][OUT_HEIGHT_Conv4][OUT_WIDTH_Conv4] = { 0 };
+	haha tempconv4out[OUT_CH_NUM_Conv4 / 128][OUT_HEIGHT_Conv4][OUT_WIDTH_Conv4] = { 0 };
 #pragma HLS array_partition variable=tempconv4out complete dim =1
 
 	for (int cyc = 0; cyc < OUT_CH_NUM_Conv4; cyc += OUT_CH_NUM_Conv4 / times)
@@ -810,13 +811,14 @@ void bnrelu4(haha *conv4out, haha *gama4, haha *beta4, haha *burelu4out) {
 	{
 		memcpy((void*)tempconv4out, conv4out + OUT_HEIGHT_Conv4 * OUT_WIDTH_Conv4 * cyc, sizeof(haha) * OUT_CH_NUM_Conv4 * OUT_HEIGHT_Conv4 * OUT_WIDTH_Conv4 / 64);
 		memcpy((void*)tempgama4, gama4 + cyc, sizeof(haha) * OUT_CH_NUM_Conv4 / 64);
-		memcpy((void*)tempbeta4, beta4 + cyc, sizeof(haha) * OUT_CH_NUM_Conv4 / 64);
+		//memcpy((void*)tempbeta4, beta4 + cyc, sizeof(haha) * OUT_CH_NUM_Conv4 / 64);
 
 		for (int i = 0; i < OUT_CH_NUM_Conv4 / 64; i++) {
 			for (int j = 0; j < OUT_HEIGHT_Conv4; j++) {
 				for (int k = 0; k < OUT_WIDTH_Conv4; k++) {
-					tempbn4[i][j][k] = tempgama4[i] * tempconv4out[i][j][k] + tempbeta4[i];
-					tempbn4[i][j][k] = (tempbn4[i][j][k] > 0) ? tempbn4[i][j][k] : ((haha)0);
+					//tempbn4[i][j][k] = tempgama4[i] * tempconv4out[i][j][k] + tempbeta4[i];
+					//tempbn4[i][j][k] = (tempbn4[i][j][k] > 0) ? tempbn4[i][j][k] : ((haha)0);
+					tempbn4[i][j][k] = (tempbn4[i][j][k] > tempgama4[i]) ? (tempbn4[i][j][k]-tempgama4[i]) : ((haha)0);
 				}
 			}
 		}
@@ -939,13 +941,14 @@ void bnrelu5(haha *conv5out, haha *gama5, haha *beta5, haha *burelu5out) {
 	{
 		memcpy((void*)tempconv5out, conv5out + OUT_HEIGHT_Conv5 * OUT_WIDTH_Conv5 * cyc, sizeof(haha) * OUT_CH_NUM_Conv5 * OUT_HEIGHT_Conv5 * OUT_WIDTH_Conv5 / 128);
 		memcpy((void*)tempgama5, gama5 + cyc, sizeof(haha) * OUT_CH_NUM_Conv5 / 128);
-		memcpy((void*)tempbeta5, beta5 + cyc, sizeof(haha) * OUT_CH_NUM_Conv5 / 128);
+		//memcpy((void*)tempbeta5, beta5 + cyc, sizeof(haha) * OUT_CH_NUM_Conv5 / 128);
 
 		for (int i = 0; i < OUT_CH_NUM_Conv5 / 128; i++) {
 			for (int j = 0; j < OUT_HEIGHT_Conv5; j++) {
 				for (int k = 0; k < OUT_WIDTH_Conv5; k++) {
-					tempbn5[i][j][k] = tempgama5[i] * tempconv5out[i][j][k] + tempbeta5[i];
-					tempbn5[i][j][k] = (tempbn5[i][j][k] > 0) ? tempbn5[i][j][k] : ((haha)0);
+					//tempbn5[i][j][k] = tempgama5[i] * tempconv5out[i][j][k] + tempbeta5[i];
+					//tempbn5[i][j][k] = (tempbn5[i][j][k] > 0) ? tempbn5[i][j][k] : ((haha)0);
+					tempbn5[i][j][k] = (tempbn5[i][j][k] > tempgama5[i]) ? (tempbn5[i][j][k]-tempgama5[i]) : ((haha)0);
 				}
 			}
 		}
@@ -1045,13 +1048,14 @@ void bnrelu6(haha *conv6out, haha *gama6, haha *beta6, haha *D_sw3) {
 	{
 		memcpy((void*)tempconv6out, conv6out + OUT_HEIGHT_Conv6 * OUT_WIDTH_Conv6 * cyc, sizeof(haha) * OUT_CH_NUM_Conv6 * OUT_HEIGHT_Conv6 * OUT_WIDTH_Conv6 / 128);
 		memcpy((void*)tempgama6, gama6 + cyc, sizeof(haha) * OUT_CH_NUM_Conv6 / 128);
-		memcpy((void*)tempbeta6, beta6 + cyc, sizeof(haha) * OUT_CH_NUM_Conv6 / 128);
+		//memcpy((void*)tempbeta6, beta6 + cyc, sizeof(haha) * OUT_CH_NUM_Conv6 / 128);
 
 		for (int i = 0; i < OUT_CH_NUM_Conv6 / 128; i++) {
 			for (int j = 0; j < OUT_HEIGHT_Conv6; j++) {
 				for (int k = 0; k < OUT_WIDTH_Conv6; k++) {
-					tempbn6[i][j][k] = tempgama6[i] * tempconv6out[i][j][k] + tempbeta6[i];
-					tempbn6[i][j][k] = (tempbn6[i][j][k] > 0) ? tempbn6[i][j][k] : ((haha)0);
+					//tempbn6[i][j][k] = tempgama6[i] * tempconv6out[i][j][k] + tempbeta6[i];
+					//tempbn6[i][j][k] = (tempbn6[i][j][k] > 0) ? tempbn6[i][j][k] : ((haha)0);
+					tempbn6[i][j][k] = (tempbn6[i][j][k] > tempgama6[i]) ? (tempbn6[i][j][k]-tempgama6[i]) : ((haha)0);
 				}
 			}
 		}
