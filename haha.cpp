@@ -115,3 +115,15 @@ for (int cyc = 0; cyc < OUT_CH_NUM_Conv; cyc += OUT_CH_NUM_Conv / times)
     }
   }
 
+
+	
+	
+th1 = 0.5
+th2 = 1   
+Regularization_conv1_weights = tf.reduce_sum(tf.where(
+			       tf.greater(conv1_weights, th1), 
+	                       tf.square(conv1_weights - th2),tf.where(
+			       tf.greater(conv1_weights, -th1),
+                               tf.square(conv1_weights), 
+			       tf.square(conv1_weights + th2))))
+
