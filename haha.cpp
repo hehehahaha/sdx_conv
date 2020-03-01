@@ -14,7 +14,7 @@ for (int r = 0; r < OUT_HEIGHT_Conv; r++)   // OUT_HEIGHT_Conv = 24
         for (int cho = 0; cho < OUT_CH_NUM_Conv; cho++)    // OUT_CH_NUM_Conv = 32
 	{
           Input_Channel:
-	  for (int chi = 0; chi < IN_CH_NUM_Conv; chi++)     // IN_CH_NUM_Conv = 1
+	  for (int chi = 0; chi < IN_CH_NUM_Conv; chi++)    // IN_CH_NUM_Conv = 1
 	  {
              ImgOut[cho][r][c] += ImgIn[chi][r + kr][c + kc] * Weight[cho][chi][kr][kc];
 	  }
