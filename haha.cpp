@@ -81,7 +81,7 @@ for (int r = 0; r < OUT_HEIGHT_Conv; r++)   // OUT_HEIGHT_Conv = 24
 }
 
 
-int times = 4
+int times = 4；
 for (int cyc = 0; cyc < OUT_CH_NUM_Conv; cyc += OUT_CH_NUM_Conv / times)
  {	
   memcpy(ImgIn, In, sizeof(float) * 28 * 28);
@@ -114,7 +114,7 @@ for (int cyc = 0; cyc < OUT_CH_NUM_Conv; cyc += OUT_CH_NUM_Conv / times)
       }
     }
   }
-
+}
 
 	
 	
